@@ -69,30 +69,56 @@ data.then((selectedData) => {
     console.log("testing: ", testing);
     /**********************************************************************/
     // Prepare data for bargraph
-    // var selected_sample = localData.samples[0]
+    var selected_sample = localData.samples[0];
     // Sort the data array using the greekSearchResults value
-    // selected_sample.sort(function(a, b) {
-    //     return parseFloat(b.sample_values) - parseFloat(a.sample_values);
-    // });
+    selected_sample.sample_values.sort(function(a, b) {
+        return parseFloat(b.sample_values) - parseFloat(a.sample_values);
+    });
 
     // Slice the first 10 objects for plotting
-    // selected_sample = selected_sample.slice(0, 10);
+    selected_sample.sample_values = selected_sample.sample_values.slice(0, 10);
 
     // Reverse the array due to Plotly's defaults
-    // selected_sample = selected_sample.reverse();
+    selected_sample.sample_values = selected_sample.sample_values.reverse();
 
-    // Trace1 for the OTU Data
+    // Trace1 - Working (all data for sample) for the OTU Data
+    // var trace1 = {
+    //     x: selected_sample_values,
+    //     y: selected_otu_ids,
+    //     text: selected_otu_labels,
+    //     name: "OTU",
+    //     type: "bar",
+    //     orientation: "h"
+    // };
+
+    // Trace1 - Working (returns top ten samples, all ids and labels) for the OTU Data
     var trace1 = {
-        x: selected_sample_values,
-        y: selected_otu_ids,
-        text: selected_otu_labels,
-        name: "OTU",
-        type: "bar",
-        orientation: "h"
+      x: selected_sample.sample_values,
+      y: selected_sample.otu_ids,
+      text: selected_sample.otu_labels,
+      name: "OTU",
+      type: "bar",
+      orientation: "h"
     };
+    console.log("trace1: ", trace1);
+    
+    var printTopTenBTU = selected_sample.sample_values.map((item, index) => {
+      console.log(`Item:  ${item} Index:  ${index}`);
+    });
+
+    // Trace2 for the OTU Data
+    var trace2 = {
+      x: selected_sample.sample_values,
+      y: selected_sample.sample_values.map(row => selected_sample.otu_ids),
+      text: selected_sample.sample_values.map(row => selected_sample.otu_labels),
+      name: "OTU",
+      type: "bar",
+      orientation: "h"
+    };
+    console.log("trace2: ", trace2);
 
     // data
-    var chartData = [trace1];
+    var chartData = [trace2];
 
     // Apply the group bar mode to the layout
     var layout = {
