@@ -159,6 +159,51 @@ function updatePlots(subject_index){
     item.append("p").text(`${getKey(selected_otu_metadata, bbtype)}: ${bbtype}`);
     item.append("p").text(`${getKey(selected_otu_metadata, wfreq)}: ${wfreq}`);
 
+    
+    /**********************************************************************/
+    // Prepare data for bonus
+    var data = [
+      {
+        type: "indicator",
+        mode: "gauge+number+delta",
+        value: id,
+        title: { text: "Belly Button Washing Frequency", font: { size: 24 } },
+        delta: { reference: 100, increasing: { color: "RebeccaPurple" } },
+        gauge: {
+          axis: { range: [null, 10], tickwidth: 1, tickcolor: "darkblue" },
+          bar: { color: "darkblue" },
+          bgcolor: "white",
+          borderwidth: 2,
+          bordercolor: "gray",
+          steps: [
+            { range: [0, 1], color: "gray" },
+            { range: [1, 2], color: "gray" },
+            { range: [2, 3], color: "gray" },
+            { range: [3, 4], color: "gray" },
+            { range: [4, 5], color: "gray" },
+            { range: [5, 6], color: "gray" },
+            { range: [6, 7], color: "gray" },
+            { range: [7, 1], color: "gray" },
+            { range: [8, 9], color: "gray" }
+          ],
+          threshold: {
+            line: { color: "red", width: 4 },
+            thickness: 1.75,
+            value: wfreq
+          }
+        }
+      }
+    ];
+    
+    var gauge_layout = {
+      width: 500,
+      height: 400,
+      margin: { t: 25, r: 25, l: 25, b: 25 },
+      paper_bgcolor: "lavender",
+      font: { color: "darkblue", family: "Arial" }
+    };
+    
+    Plotly.newPlot('gauge', data, gauge_layout);
   });
 }
 
