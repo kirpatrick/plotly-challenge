@@ -1,5 +1,6 @@
 // Check connection to app.js
 console.log("Connected to bonus.js");
+console.log("Maybe next time!");
 
 /*
     ** OPTIONAL **

@@ -1,7 +1,7 @@
 // Refer to the Plotly.js documentation (https://plot.ly/javascript/) when building the plots.
 
-// // Check connection to app.js
-// console.log("Connected to app.js");
+// Check connection to app.js
+console.log("Connected to app.js");
 
 /*****************************************************/
 // 1. Use the D3 library to read in `samples.json`.
@@ -9,40 +9,28 @@ const url = "data/samples.json";
 // Fetch the JSON data - Promise Pending
 const data = d3.json(url);
 // Log results
-console.log("Data Promise: ", data);
+// console.log("Data Promise: ", data);
 
-let newData = Promise.resolve(data);
-
-console.log("newData:", newData);
-
-// Global selected_subject variable
+// Global selected_subject variables
 let selected_subject = 940;
-let selected_otu_index = 0;
+let selected_subject_index = 0;
+
+// Display plots for first subject by default
+updatePlots(selected_subject_index);
 
 // Utility to return the key given a value
 const getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
 // Test key 'getKey'
 // console.log("metadata id key", getKey(selected_otu_metadata, ethnicity));
 
-data.then((usableData) => {
-  // 6. Update all of the plots any time that a new sample is selected.
-  // Select the dropdown
-  let dropdown = d3.select("#selDataset");
-  // Test Subject ID No's to the dropdown
-  // console.log("sample_names.length", localData.names.length);
-  for (var j = 0; j < usableData.names.length; j++) {
-    dropdown.append("option").text(usableData.names[j]);
-  }
-});
-
 // optionChanged user input
 function optionChanged(selection){
   selected_subject = selection;
   // console.log("selection: ", selected_subject);
   data.then((usableData) => {
-    selected_otu_index = getKey(usableData.names, selected_subject);
-    console.log(selected_otu_index," : ", usableData.names[selected_otu_index]);
-    updatePlots(selected_otu_index);
+    selected_subject_index = getKey(usableData.names, selected_subject);
+    console.log(selected_subject_index," : ", usableData.names[selected_subject_index]);
+    updatePlots(selected_subject_index);
   });
 }
 
@@ -50,19 +38,19 @@ function updatePlots(subject_index){
   /*****************************************************/
   // 2. Create a horizontal bar chart with a dropdown menu to display the top 10 OTUs found in that individual.
   // Display data on html
-  data.then((selectedData) => {
+  data.then((usableData) => {
 
     // Store importedData to local varable
-    let localData = selectedData;
+    let localData = usableData;
     // Check localData in console
     console.log("localData: ", localData);
 
     // Store updated index otu index
-    selected_otu_index = subject_index;    
+    selected_subject_index = subject_index;    
 
     /**********************************************************************/
     // Prepare data for bargraph
-    let selected_sample = localData.samples[selected_otu_index];
+    let selected_sample = localData.samples[selected_subject_index];
     // Sort the data array using the greekSearchResults value
     let top_ten_values = selected_sample.sample_values.sort(function (a, b) {
       return parseFloat(b.sample_values) - parseFloat(a.sample_values);
@@ -74,11 +62,10 @@ function updatePlots(subject_index){
     // Reverse the array due to Plotly's defaults
     top_ten_values = top_ten_values.reverse();
 
-    // Trace - Working but y-axis label still duplating (x2)
+    // Trace
     let bar_trace = {
       x: top_ten_values,
-      // y: selected_sample.sample_values.map(row => selected_sample.otu_ids),
-      y: selected_sample.otu_ids.map(row => row).slice(0, 10),
+      y: selected_sample.otu_ids.map(row => selected_sample.otu_ids), // double value bug
       text: selected_sample.otu_labels.map(row => row).slice(0, 10),
       name: "OTU",
       type: "bar",
@@ -90,7 +77,7 @@ function updatePlots(subject_index){
     let bar_chartData = [bar_trace];
 
     // Apply the group bar mode to the layout
-    let layout = {
+    let bar_layout = {
       margin: {
         l: 100,
         r: 100,
@@ -100,7 +87,7 @@ function updatePlots(subject_index){
     };
 
     // Render the plot to the div tag with id "plot"
-    Plotly.newPlot("bar", bar_chartData, layout);
+    Plotly.newPlot("bar", bar_chartData, bar_layout);
 
     /**********************************************************************/
     // 3. Create a bubble chart that displays each sample.
@@ -125,24 +112,33 @@ function updatePlots(subject_index){
       orientation: "h"
     };
     console.log("bubble_trace: ", bubble_trace);
+    
+    // Apply the group bar mode to the layout
+    let bubble_layout = {
+      margin: {
+        l: 25,
+        r: 25,
+        t: 25,
+        b: 25
+      }
+    };
 
     // data
     let bubble_chartData = [bubble_trace];
 
     // Render the plot to the div tag with id bubble""
-    Plotly.newPlot("bubble", bubble_chartData, layout);
+    Plotly.newPlot("bubble", bubble_chartData, bubble_layout);
 
     /*****************************************************/
     // 4. Display the sample metadata, i.e., an individual's demographic information.
     // 5. Display each key-value pair from the metadata JSON object somewhere on the page.
     // Store metadata at index
-    let selected_otu_metadata = localData.metadata[selected_otu_index];
+    let selected_otu_metadata = localData.metadata[selected_subject_index];
     // Check names in console
     // console.log("selected_otu_metadata: ", selected_otu_metadata);
     // Check value returned
-    // console.log("selected_otu_metadata[id]", selected_otu_metadata["id"]);
 
-    // Store values
+    // Store selected demographics
     let id = selected_otu_metadata["id"]
     let ethnicity = selected_otu_metadata["ethnicity"]
     let gender = selected_otu_metadata["gender"]
@@ -165,48 +161,15 @@ function updatePlots(subject_index){
 
   });
 }
+
 /*****************************************************/
-
-// Use D3 to create an event handler
-  // d3.selectAll("body").on("change", optionChanged);
-
-// Use D3 to create an event handler
-// d3.selectAll("body").on("change", optionChanged);
-
-// function optionChanged() {
-
-//     // * Use `sample_values` as the values for the bar chart.
-//     let dropdownMenu = d3.selectAll("#selDataset").node();
-//     // Assign the value of the dropdown menu option to a varable
-//     // let dataset = dropdownMenu.property("onchange");
-
-//     // Assign the dropdown menu item ID to a varable
-//     let dropdownMenuID = dropdownMenu.id;
-//     // Assign the dropdown menu option to a varable
-//     let selectedOption = dropdownMenu.onchange;
-
-//     console.log("dropdownMenuID", dropdownMenuID);
-//     console.log("selectedOption", selectedOption);
-
-
-// }
-
-// let dropdownMenu = d3.selectAll("#selDataset").node();
-// // Assign the value of the dropdown menu option to a varable
-// // let dataset = dropdownMenu.property("onchange");
-
-// // Assign the dropdown menu item ID to a varable
-// let dropdownMenuID = dropdownMenu.id;
-// // Assign the dropdown menu option to a varable
-// let selectedOption = dropdownMenu.onchange;
-
-// console.log("dropdownMenuID", dropdownMenuID);
-// console.log("selectedOption", selectedOption);
-
-// // Map to sample_names (ids)
-// let sample_names = localData.names;
-// console.log("sample_names", sample_names);
-// console.log("sample_names.length", sample_names.length);
-
-// // dropdownMenuID.onchange.append(`<option> ${sample_names} </option>`);
-
+// 6. Update all of the plots any time that a new sample is selected.
+data.then((usableData) => {
+  // Select the dropdown
+  let dropdown = d3.select("#selDataset");
+  // Test Subject ID No's to the dropdown
+  // console.log("sample_names.length", localData.names.length);
+  for (var j = 0; j < usableData.names.length; j++) {
+    dropdown.append("option").text(usableData.names[j]);
+  }
+});
