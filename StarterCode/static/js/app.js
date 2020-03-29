@@ -34,20 +34,22 @@ data.then((selectedData) => {
   // Prepare data for bargraph
   let selected_sample = localData.samples[selected_otu_index];
   // Sort the data array using the greekSearchResults value
-  selected_sample.sample_values.sort(function (a, b) {
+  let top_ten_values = selected_sample.sample_values.sort(function (a, b) {
     return parseFloat(b.sample_values) - parseFloat(a.sample_values);
   });
 
   // Slice the first 10 objects for plotting
-  selected_sample.sample_values = selected_sample.sample_values.slice(0, 10);
+  top_ten_values = top_ten_values.slice(0, 10);
 
   // Reverse the array due to Plotly's defaults
-  selected_sample.sample_values = selected_sample.sample_values.reverse();
+  top_ten_values = top_ten_values.reverse();
+
 
   // Trace - Working but y-axis label still duplating (x2)
   let bar_trace = {
-    x: selected_sample.sample_values,
-    y: selected_sample.sample_values.map(row => selected_sample.otu_ids),
+    x: top_ten_values,
+    // y: selected_sample.sample_values.map(row => selected_sample.otu_ids),
+    y: selected_sample.otu_ids.map(row => row).slice(0, 10),
     text: selected_sample.otu_labels.map(row => row).slice(0, 10),
     name: "OTU",
     type: "bar",
@@ -74,27 +76,22 @@ data.then((selectedData) => {
 
   /**********************************************************************/
   // 3. Create a bubble chart that displays each sample.
-  
-  
-  
-  
-  // * Use `otu_labels` for the text values.
-
   // Trace - Working but y-axis label still duplating (x2)
   let bubble_trace = {
     // * Use `otu_ids` for the x values.
-    x: selected_sample.sample_values,
+    x: selected_sample.otu_ids,
     // * Use `sample_values` for the y values.
-    y: selected_sample.sample_values.map(row => selected_sample.otu_ids),
-    text: selected_sample.otu_labels.map(row => row).slice(0, 10),
+    y: selected_sample.sample_values,
+    // * Use `otu_labels` for the text values.
+    text: selected_sample.otu_labels,
     name: "OTU",
     type: "scatter",
     mode: "markers",
     marker: {
       // * Use `otu_ids` for the marker colors.
-      color: 'rgb(31, 119, 180)',
+      color: selected_sample.otu_ids,
       // * Use `sample_values` for the marker size.
-      size: 18,
+      size: selected_sample.sample_values,
       symbol: 'circle'
     },
     orientation: "h"
@@ -103,18 +100,7 @@ data.then((selectedData) => {
 
   // data
   let bubble_chartData = [bubble_trace];
-
-  // Apply the group bar mode to the layout
-  // let layout = {
-  //   title: `OTU results for Test Subject ${localData.names[selected_otu_index]}`,
-  //   margin: {
-  //     l: 100,
-  //     r: 100,
-  //     t: 100,
-  //     b: 100
-  //   }
-  // };
-
+  
   // Render the plot to the div tag with id bubble""
   Plotly.newPlot("bubble", bubble_chartData, layout);
 
